@@ -7,7 +7,7 @@ const size = 5
 var x = y = 0
 
 //classes 
-class Direction {
+class GameDirection {
   static Left = new Direction(0)
   static Right = new Direction(1)
   static Up = new Direction(2)
@@ -16,6 +16,18 @@ class Direction {
 
   constructor(direction) {
     this.direction = direction
+  }
+}
+
+class GameState {
+  static Start = new GameState(0)
+  static Playing = new GameState(1)
+  static GameOver = new GameState(2)
+  static Win = new GameState(3)
+  static Pause = new GameState(4)
+
+  constructor(state) {
+    this.state = state
   }
 }
 
@@ -98,6 +110,127 @@ class MainGame {
     }
 
     console.log(e.key)
+  }
+}
+
+class SnakeNode {
+  constructor(x, y, size) {
+    this.#_x = x
+    this.#_y = y
+    this.#_size = size
+  }
+
+  get x() {
+    return this.#_x
+  }
+
+  get y() {
+    return this.#_y
+  }
+
+  get size() {
+    return this.#_size
+  }
+
+  set x(x) {
+    this.#_x = x
+  }
+
+  set y(y) {
+    this.#_y = y
+  }
+}
+
+class SnakeGame {
+  #_gameState
+  #_contextCanvas
+  #_direction
+  #_snakeNode
+
+  constructor() {
+    this.#initialize()
+  }
+
+  // getters and setters
+  get frameRate() {
+    return 1000 / 60
+  }
+
+  get gameState() {
+    return this.#_gameState
+  }
+
+  get gameDirection() {
+    return this.#_direction
+  }
+
+  get activeConsole() {
+    return true
+  }
+
+  set gameDirection(direction) {
+    this.#_direction = direction
+  }
+
+  set gameState(state) {
+    this.#_gameState = state
+  }
+
+  #processInput(e) {
+    if (e.key == 'ArrowRight') {
+      this.gameDirection(GameDirection.Right)
+    }
+    else if (e.key == 'ArrowLeft') {
+      this.gameDirection(GameDirection.Left)
+    }
+    else if (e.key == 'ArrowUp') {
+      this.gameDirection(GameDirection.Up)
+    }
+    else if (e.key == 'ArrowDown') {
+      this.gameDirection(GameDirection.Down)
+    }
+    else {
+      this.gameDirection(GameDirection.Undefined)
+    }
+
+    if (activeConsole()) {
+      console.log(e.key)
+    }
+  }
+
+  update() {
+    switch (this.gameDirection) {
+      case GameDirection.Left:
+        this.#_snakeNode.x--
+        break
+      case GameDirection.Right:
+        this.#_snakeNode.x++
+        break
+      case GameDirection.Up:
+        this.#_snakeNode.y = this.#_snakeNode.y - this.#_snakeNode.size
+        break
+      case GameDirection.Down:
+        this.#_snakeNode.y = this.#_snakeNode.y + this.#_snakeNode.size
+        break
+    }
+
+    if (activeConsole()) {
+      console.log(this.#_snakeNode.x, this.#_snakeNode.y)
+    }
+
+  }
+
+  render() {
+    this.#_contextCanvas.clearRect(0, 0, 800, 600)
+
+  }
+
+  #initialize() {
+    document.addEventListener('keydown', this.#processInput.bind(this))
+    this.#contextCanvas = document.getElementById("canvas").getContext("2d")
+    this.#_snakeNode = new SnakeNode(5, 5, 5)
+    this.gameDirection = GameDirection.Right
+    this.gameState = GameState.Start
   }
 }
 
