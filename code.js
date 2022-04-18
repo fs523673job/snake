@@ -12,6 +12,7 @@ class Direction {
   static Right = new Direction(1)
   static Up = new Direction(2)
   static Down = new Direction(3)
+  static Undefined = new Direction(4)
 
   constructor(direction) {
     this.direction = direction
@@ -29,16 +30,15 @@ class SnakeDraw {
 }
 
 class Snake {
-  constructor(x, y, size, direction, context) {
+  constructor(x, y, size, context) {
     this.x = x
     this.y = y
     this.size = size
-    this.direction = direction
     this.context = context
   }
 
-  move() {
-    switch (this.direction) {
+  move(direction) {
+    switch (direction) {
       case Direction.Left:
         this.x--
         break
@@ -58,7 +58,12 @@ class Snake {
 
 class MainGame {
   constructor() {
-    this.snake = new Snake(x, y, size, Direction.Right, ctx)
+    this.direction = Direction.Right
+    this.snake = new Snake(x, y, size, ctx)
+  }
+
+  get velocity() {
+    return velocity
   }
 
   start() {
@@ -66,25 +71,30 @@ class MainGame {
   }
 
   mainLoop() {
-    this.snake.move()
-    requestAnimationFrame(MainGame.mainLoop)
+    if (this !== undefined && this.snake !== undefined) {
+      this.snake.move(this.direction)
+      requestAnimationFrame(this.mainLoop)
+    }
+    else {
+      console.log("snake is undefined")
+    }
   }
 
   keyListener(e) {
-    if (e.key == 39) {
-      rightPressed = true;
+    if (e.key == 'ArrowRight') {
+      this.direction = Direction.Right
     }
-    else if (e.key == 37) {
-      leftPressed = true;
+    else if (e.key == 'ArrowLeft') {
+      this.direction = Direction.Left
     }
-    else if (e.keyCode == 38) {
-      upPressed = true;
+    else if (e.key == 'ArrowUp') {
+      this.direction = Direction.Up
     }
-    else if (e.keyCode == 40) {
-      downPressed = true;
+    else if (e.key == 'ArrowDown') {
+      this.direction = Direction.Down
     }
-    else if (e.keyCode == 32) {
-      spacePressed = true;
+    else {
+      this.direction = Direction.Undefined
     }
 
     console.log(e.key)
@@ -92,31 +102,5 @@ class MainGame {
 }
 
 let mainGame = new MainGame();
-document.addEventListener("keydown", mainGame.keyListener, false)
+document.addEventListener("keydown", mainGame.keyListener.bind(mainGame), false)
 mainGame.start()
-
-/*
-function draw() {
-  ctx.fillStyle = "red"
-  ctx.beginPath()
-  ctx.clearRect(0, 0, 800, 600)
-  ctx.arc(x, y, size, 0, 2 * Math.PI)
-  ctx.fill();
-  requestAnimationFrame(draw)
-  //console.log('draw')
-}
-
-function mainLoop() {
-  //draw(Math.random() * window.innerWidth, Math.random() * window.innerHeight, Math.random() * 100)
-  //draw(x1++, y1++, size);
-  incVar()
-}
-
-function incVar() {
-  x++
-  y++
-}
-
-draw()
-setInterval(mainLoop, 30)
-*/
