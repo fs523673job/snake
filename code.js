@@ -61,6 +61,7 @@ class SnakeGame {
   #_contextCanvas
   #_direction
   #_snakeNode
+  #_intervalProcess
 
   constructor() {
     this.#_initialize()
@@ -106,7 +107,9 @@ class SnakeGame {
       this.gameDirection = GameDirection.Down
     }
     else {
-      this.gameDirection = GameDirection.Undefined
+      if (e.key == 'Enter') {
+        document.getElementById("canvas").requestFullscreen()
+      }
     }
 
     if (this.#_activeConsole()) {
@@ -117,16 +120,16 @@ class SnakeGame {
   #_update() {
     switch (this.gameDirection) {
       case GameDirection.Left:
-        this.#_snakeNode.x--
+        this.#_snakeNode.x -= this.#_snakeNode.size
         break
       case GameDirection.Right:
-        this.#_snakeNode.x++
+        this.#_snakeNode.x += this.#_snakeNode.size
         break
       case GameDirection.Up:
-        this.#_snakeNode.y = this.#_snakeNode.y - this.#_snakeNode.size
+        this.#_snakeNode.y -= this.#_snakeNode.size
         break
       case GameDirection.Down:
-        this.#_snakeNode.y = this.#_snakeNode.y + this.#_snakeNode.size
+        this.#_snakeNode.y += this.#_snakeNode.size
         break
     }
 
@@ -146,13 +149,14 @@ class SnakeGame {
   start() {  //start the game
     this.#_gameState = GameState.Playing
     this.#_gameLoop() //start the game loop
+    this.#_intervalProcess = 100
+    setInterval(this.#_update.bind(this), this.#_intervalProcess) //update the game
   }
 
   #_gameLoop() {
     if (this.#_gameState == GameState.Playing) {
-      this.#_update() //update the game
       this.#_render() //render the game
-      setTimeout(this.#_gameLoop.bind(this), this.frameRate) //call the game loop again
+      requestAnimationFrame(this.#_gameLoop.bind(this)) //call the game loop
     }
   }
 
