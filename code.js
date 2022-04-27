@@ -27,6 +27,8 @@ class GameState {
 class SnakeNode {
   #_x
   #_y
+  #_pX
+  #_pY
   #_size
   #_nextNode
   #_priorNode
@@ -34,6 +36,8 @@ class SnakeNode {
   constructor(x, y, size) {
     this.#_x = x
     this.#_y = y
+    this.#_pX = 0
+    this.#_pY = 0
     this.#_size = size
     this.#_nextNode = null
     this.#_priorNode = null
@@ -59,6 +63,14 @@ class SnakeNode {
     return this.#_priorNode
   }
 
+  get pX() {
+    return this.#_pX
+  }
+
+  get pY() {
+    return this.#_pY
+  }
+
   set nextNode(node) {
     this.#_nextNode = node
   }
@@ -68,10 +80,12 @@ class SnakeNode {
   }
 
   set x(x) {
+    this.#_pX = this.#_x
     this.#_x = x
   }
 
   set y(y) {
+    this.#_pY = this.#_y
     this.#_y = y
   }
 }
@@ -162,22 +176,30 @@ class SnakeGame {
     this.#_contextCanvas.fillStyle = "red"
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.arc(this.#_snakeHeadNode.x, this.#_snakeHeadNode.y, this.#_snakeHeadNode.size, 0, 2 * Math.PI)
-    while (this.#_snakeHeadNode.priorNode != null) {
-      this.#_snakeNode = this.#_snakeNode.priorNode
+    this.#_snakeNode = this.#_snakeHeadNode.priorNode
+    while (this.#_snakeNode != null) {
       this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
+      this.#_snakeNode = this.#_snakeNode.priorNode
     }
     this.#_contextCanvas.fill()
   }
 
   #_addSnakeNode() {
-    let newNode = new SnakeNode(this.#_snakeHeadNode.x, this.#_snakeHeadNode.y, this.#_snakeHeadNode.size)
-    this.#_snakeNode = this.#_snakeHeadNode
-    while (this.#_snakeNode.priorNode != null) {
-      this.#_snakeNode = this.#_snakeNode.priorNode
+    if (this.#_snakeHeadNode.priorNode == null) {
+      this.#_snakeNode = this.#_snakeHeadNode
     }
-    newNode.nextNode = this.#_snakeHeadNode
-    this.#_snakeHeadNode.priorNode = newNode
-    this.#_snakeHeadNode = newNode
+    else {
+      this.#_snakeNode = this.#_snakeHeadNode.priorNode
+      while (this.#_snakeNode != null) {
+        if (this.#_snakeNode.priorNode == null) {
+          break
+        }
+        this.#_snakeNode = this.#_snakeNode.priorNode
+      }
+    }
+    let newNode = new SnakeNode(this.#_snakeNode.pX, this.#_snakeNode.pY, this.#_snakeNode.size)
+    newNode.nextNode = this.#_snakeNode
+    this.#_snakeNode.priorNode = newNode
   }
 
   #_updateDirection() {
@@ -203,6 +225,7 @@ class SnakeGame {
 
   #_processAll() {
     this.#_updateDirection()
+    this.#_addSnakeNode()
   }
 
   #_render() {
