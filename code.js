@@ -62,6 +62,8 @@ class SnakeGame {
   #_direction
   #_snakeNode
   #_intervalProcess
+  #_canvas
+  #_snakeSize = 5
 
   constructor() {
     this.#_initialize()
@@ -108,7 +110,7 @@ class SnakeGame {
     }
     else {
       if (e.key == 'Enter') {
-        document.getElementById("canvas").requestFullscreen()
+        this.#_canvas.requestFullscreen()
       }
     }
 
@@ -117,19 +119,37 @@ class SnakeGame {
     }
   }
 
+  #_drawMatrix() {
+    this.#_contextCanvas.fillStyle = "black"
+    this.#_contextCanvas.beginPath()
+
+    for (var i = 0; i < this.#_canvas.width; i += (this.#_snakeNode.size * 2)) {
+      this.#_contextCanvas.moveTo(i + (this.#_snakeSize * 2), 0)
+      this.#_contextCanvas.lineTo(i + (this.#_snakeSize * 2), this.#_canvas.height)
+    }
+
+    for (var i = 0; i < this.#_canvas.height; i += (this.#_snakeNode.size * 2)) {
+      this.#_contextCanvas.moveTo(0, i + (this.#_snakeSize * 2))
+      this.#_contextCanvas.lineTo(this.#_canvas.width, i + (this.#_snakeSize * 2))
+    }
+
+    this.#_contextCanvas.strokeStyle = '#ffffff'
+    this.#_contextCanvas.stroke()
+  }
+
   #_update() {
     switch (this.gameDirection) {
       case GameDirection.Left:
-        this.#_snakeNode.x -= this.#_snakeNode.size
+        this.#_snakeNode.x -= (this.#_snakeNode.size * 2)
         break
       case GameDirection.Right:
-        this.#_snakeNode.x += this.#_snakeNode.size
+        this.#_snakeNode.x += (this.#_snakeNode.size * 2)
         break
       case GameDirection.Up:
-        this.#_snakeNode.y -= this.#_snakeNode.size
+        this.#_snakeNode.y -= (this.#_snakeNode.size * 2)
         break
       case GameDirection.Down:
-        this.#_snakeNode.y += this.#_snakeNode.size
+        this.#_snakeNode.y += (this.#_snakeNode.size * 2)
         break
     }
 
@@ -144,12 +164,13 @@ class SnakeGame {
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
     this.#_contextCanvas.fill()
+    this.#_drawMatrix()
   }
 
   start() {  //start the game
     this.#_gameState = GameState.Playing
     this.#_gameLoop() //start the game loop
-    this.#_intervalProcess = 100
+    this.#_intervalProcess = 1000
     setInterval(this.#_update.bind(this), this.#_intervalProcess) //update the game
   }
 
@@ -162,8 +183,9 @@ class SnakeGame {
 
   #_initialize() {
     document.addEventListener('keydown', this.#_processInput.bind(this))
-    this.#_contextCanvas = document.getElementById("canvas").getContext("2d")
-    this.#_snakeNode = new SnakeNode(5, 5, 5)
+    this.#_canvas = document.getElementById("canvas")
+    this.#_contextCanvas = this.#_canvas.getContext("2d")
+    this.#_snakeNode = new SnakeNode(5, 5, this.#_snakeSize)
     this.gameDirection = GameDirection.Right
     this.gameState = GameState.Start
   }
