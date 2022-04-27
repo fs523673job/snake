@@ -147,6 +147,9 @@ class SnakeGame {
       if (e.key == 'Enter') {
         this.#_canvas.requestFullscreen()
       }
+      else if (e.key == ' ') {
+        this.#_addSnakeNode()
+      }
     }
 
     if (this.#_activeConsole()) {
@@ -180,6 +183,7 @@ class SnakeGame {
     while (this.#_snakeNode != null) {
       this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
       this.#_snakeNode = this.#_snakeNode.priorNode
+      break
     }
     this.#_contextCanvas.fill()
   }
@@ -221,11 +225,21 @@ class SnakeGame {
     if (this.#_activeConsole()) {
       console.log('x : ' + this.#_snakeHeadNode.x, 'y : ' + this.#_snakeHeadNode.y + '\n' + 'direction : ' + this.#_direction.direction)
     }
+
+    this.#_updateDirectionBody()
+  }
+
+  #_updateDirectionBody() {
+    this.#_snakeNode = this.#_snakeHeadNode.priorNode
+    while (this.#_snakeNode != null) {
+      this.#_snakeNode.x = this.#_snakeNode.nextNode.pX
+      this.#_snakeNode.y = this.#_snakeNode.nextNode.pY
+      this.#_snakeNode = this.#_snakeNode.priorNode
+    }
   }
 
   #_processAll() {
     this.#_updateDirection()
-    this.#_addSnakeNode()
   }
 
   #_render() {
