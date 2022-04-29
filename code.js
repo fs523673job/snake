@@ -199,9 +199,12 @@ class SnakeGame {
     this.#_contextCanvas.fillStyle = "red"
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.arc(this.#_snakeHeadNode.x, this.#_snakeHeadNode.y, this.#_snakeHeadNode.size, 0, 2 * Math.PI)
+    this.#_contextCanvas.fill()
     this.#_snakeNode = this.#_snakeHeadNode.priorNode
     while (this.#_snakeNode != null) {
+      this.#_contextCanvas.beginPath()
       this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
+      this.#_contextCanvas.fill()
       this.#_snakeNode = this.#_snakeNode.priorNode
     }
     this.#_contextCanvas.fill()
