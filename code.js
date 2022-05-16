@@ -112,6 +112,7 @@ class SnakeGame {
   #_contextCanvas
   #_snakeHeadNode
   #_snakeNode
+  #_foodNode
   #_intervalProcess
   #_canvas
   #_snakeSize = 5
@@ -142,8 +143,13 @@ class SnakeGame {
   }
 
   #_activeConsole() {
-    //console.clear()
     return true
+  }
+
+  #_consoleLog(methName, message) {
+    if (this.#_activeConsole()) {
+      console.log(methName + ' ' + message)
+    }
   }
 
   #_processInput(e) {
@@ -164,15 +170,12 @@ class SnakeGame {
         this.#_canvas.requestFullscreen()
       }
       else if (e.key == ' ') {
-        this.#_addSnakeNode()
+        this.#_addFood()
         return
       }
     }
 
-    if (this.#_activeConsole()) {
-      console.log('Input Key: ' + e.key)
-    }
-
+    this.#_consoleLog('#_processInput', 'Input Key: ' + e.key)
     this.#_render()
     this.#_processAll()
   }
@@ -210,6 +213,15 @@ class SnakeGame {
     this.#_contextCanvas.fill()
   }
 
+  #_drawFoodNode() {
+    if (this.#_foodNode) {
+      this.#_contextCanvas.fillStyle = "green"
+      this.#_contextCanvas.beginPath()
+      this.#_contextCanvas.arc(this.#_foodNode.x, this.#_foodNode.y, this.#_foodNode.size, 0, 2 * Math.PI)
+      this.#_contextCanvas.fill()
+    }
+  }
+
   #_addSnakeNode() {
     if (this.#_snakeHeadNode.priorNode == null) {
       this.#_snakeNode = this.#_snakeHeadNode
@@ -240,6 +252,14 @@ class SnakeGame {
     this.#_snakeNode.priorNode = newNode
   }
 
+  #_addFood() {
+    let x = Math.floor(Math.random() * (this.#_canvas.width / this.#_snakeSize)) * this.#_snakeSize
+    let y = Math.floor(Math.random() * (this.#_canvas.height / this.#_snakeSize)) * this.#_snakeSize
+    this.#_foodNode = new SnakeNode(x, y, GameDirection.None, this.#_snakeSize)
+
+    this.#_consoleLog('#_addFood', 'Food X: ' + x + ' Y: ' + y)
+  }
+
   #_updateDirection(snake) {
     switch (snake.direction) {
       case GameDirection.Left:
@@ -256,10 +276,8 @@ class SnakeGame {
         break
     }
 
-    if (this.#_activeConsole()) {
-      console.log('Snake x : ' + snake.x, ' y : ' + snake.y + ' direction : ' + snake.direction.direction)
-      console.log('Snake pX : ' + snake.pX, ' pY : ' + snake.pY + ' pDirection : ' + snake.pDirection.direction)
-    }
+    this.#_consoleLog('#_updateDirection', 'Snake x : ' + snake.x, ' y : ' + snake.y + ' direction : ' + snake.direction.direction)
+    this.#_consoleLog('#_updateDirection', 'Snake pX : ' + snake.pX, ' pY : ' + snake.pY + ' pDirection : ' + snake.pDirection.direction)
 
     this.#_updateDirectionBody()
   }
@@ -294,8 +312,8 @@ class SnakeGame {
         }
       }
       this.#_snakeNode.direction = this.#_snakeNode.nextNode.pDirection
-      console.log('Snake x : ' + this.#_snakeNode.x, 'y : ' + this.#_snakeNode.y + ' direction : ' + this.#_snakeNode.direction.direction)
-      console.log('Snake pX : ' + this.#_snakeNode.pX, 'pY : ' + this.#_snakeNode.pY + ' pDirection : ' + this.#_snakeNode.pDirection.direction)
+      this.#_consoleLog('#_updateDirectionBody', 'Snake x : ' + this.#_snakeNode.x, 'y : ' + this.#_snakeNode.y + ' direction : ' + this.#_snakeNode.direction.direction)
+      this.#_consoleLog('#_updateDirectionBody', 'Snake pX : ' + this.#_snakeNode.pX, 'pY : ' + this.#_snakeNode.pY + ' pDirection : ' + this.#_snakeNode.pDirection.direction)
       this.#_snakeNode = this.#_snakeNode.priorNode
     }
   }
@@ -307,6 +325,7 @@ class SnakeGame {
   #_render() {
     this.#_contextCanvas.clearRect(0, 0, 800, 600)
     this.#_drawSnake()
+    this.#_drawFoodNode()
     this.#_drawMatrix()
   }
 
@@ -314,7 +333,7 @@ class SnakeGame {
     this.#_gameState = GameState.Playing
     this.#_gameLoop() //start the game loop
     this.#_intervalProcess = 1000
-    //setInterval(this.#_processAll.bind(this), this.#_intervalProcess) //start the process loop
+    setInterval(this.#_processAll.bind(this), this.#_intervalProcess) //start the process loop
   }
 
   #_gameLoop() {
