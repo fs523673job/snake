@@ -34,8 +34,9 @@ class SnakeNode {
   #_priorNode
   #_direction
   #_pDirection
+  #_name
 
-  constructor(x, y, direction, size) {
+  constructor(x, y, direction, size, name) {
     this.#_x = x
     this.#_y = y
     this.#_pX = this.#_x
@@ -45,6 +46,7 @@ class SnakeNode {
     this.#_priorNode = null
     this.#_direction = direction
     this.#_pDirection = direction
+    this.#_name = name
   }
 
   get x() {
@@ -83,6 +85,14 @@ class SnakeNode {
     return this.#_pDirection
   }
 
+  get name() {
+    return this.#_name
+  }
+
+  set name(name) {
+    this.#_name = name
+  }
+
   set direction(direction) {
     this.#_pDirection = this.#_direction
     this.#_direction = direction
@@ -116,6 +126,7 @@ class SnakeGame {
   #_intervalProcess
   #_canvas
   #_snakeSize = 5
+  #_score = 0
 
   constructor() {
     this.#_initialize()
@@ -170,12 +181,13 @@ class SnakeGame {
         this.#_canvas.requestFullscreen()
       }
       else if (e.key == ' ') {
-        this.#_addFood()
+        //this.#_addFood()
+        this.#_addSnakeNode()
         return
       }
     }
 
-    this.#_consoleLog('#_processInput', 'Input Key: ' + e.key)
+    this.#_consoleLog('#_processInput', `Input Key: ${e.key}`)
     this.#_render()
     this.#_processAll()
   }
@@ -199,6 +211,7 @@ class SnakeGame {
   }
 
   #_drawSnake() {
+    let nodesDraw = 1
     this.#_contextCanvas.fillStyle = "red"
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.arc(this.#_snakeHeadNode.x, this.#_snakeHeadNode.y, this.#_snakeHeadNode.size, 0, 2 * Math.PI)
@@ -209,8 +222,10 @@ class SnakeGame {
       this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
       this.#_contextCanvas.fill()
       this.#_snakeNode = this.#_snakeNode.priorNode
+      nodesDraw++
     }
     this.#_contextCanvas.fill()
+    this.#_consoleLog('#_drawSnake', `Nodes Draw: ${nodesDraw}`)
   }
 
   #_drawFoodNode() {
@@ -223,15 +238,18 @@ class SnakeGame {
   }
 
   #_addSnakeNode() {
+    let indexNode = 0
     if (this.#_snakeHeadNode.priorNode == null) {
       this.#_snakeNode = this.#_snakeHeadNode
     }
     else {
       this.#_snakeNode = this.#_snakeHeadNode.priorNode
+      indexNode++
       while (this.#_snakeNode != null) {
         if (this.#_snakeNode.priorNode == null) {
           break
         }
+        indexNode++
         this.#_snakeNode = this.#_snakeNode.priorNode
       }
     }
@@ -247,17 +265,26 @@ class SnakeGame {
         localY = this.#_snakeNode.y
         break
     }
-    let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size)
+    let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size, 'body_' + indexNode)
     newNode.nextNode = this.#_snakeNode
     this.#_snakeNode.priorNode = newNode
   }
 
   #_addFood() {
-    let x = Math.floor(Math.random() * (this.#_canvas.width / this.#_snakeSize)) * this.#_snakeSize
-    let y = Math.floor(Math.random() * (this.#_canvas.height / this.#_snakeSize)) * this.#_snakeSize
+    let x = (Math.floor(Math.random() * (this.#_canvas.width / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
+    let y = (Math.floor(Math.random() * (this.#_canvas.height / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
     this.#_foodNode = new SnakeNode(x, y, GameDirection.None, this.#_snakeSize)
 
-    this.#_consoleLog('#_addFood', 'Food X: ' + x + ' Y: ' + y)
+    this.#_consoleLog('#_addFood', `Food [x:${x},y:${y}]`)
+  }
+
+  #_collisionFood() {
+    if (this.#_snakeHeadNode.x == this.#_foodNode.x && this.#_snakeHeadNode.y == this.#_foodNode.y) {
+      this.#_addSnakeNode()
+      this.#_addFood()
+      this.#_score++
+      this.#_consoleLog('#_collisionFood', `Score: ${this.#_score}`)
+    }
   }
 
   #_updateDirection(snake) {
@@ -276,9 +303,7 @@ class SnakeGame {
         break
     }
 
-    this.#_consoleLog('#_updateDirection', 'Snake x : ' + snake.x, ' y : ' + snake.y + ' direction : ' + snake.direction.direction)
-    this.#_consoleLog('#_updateDirection', 'Snake pX : ' + snake.pX, ' pY : ' + snake.pY + ' pDirection : ' + snake.pDirection.direction)
-
+    this.#_consoleLog('#_updateDirection', `Snake (${snake.name}): [x:${snake.x},y:${snake.y}] - [pX:${snake.pX},pY:${snake.pY}] - [Direction:${snake.direction.direction}] - [pDirection:${snake.pDirection.direction}]`)
     this.#_updateDirectionBody()
   }
 
@@ -312,26 +337,27 @@ class SnakeGame {
         }
       }
       this.#_snakeNode.direction = this.#_snakeNode.nextNode.pDirection
-      this.#_consoleLog('#_updateDirectionBody', 'Snake x : ' + this.#_snakeNode.x, 'y : ' + this.#_snakeNode.y + ' direction : ' + this.#_snakeNode.direction.direction)
-      this.#_consoleLog('#_updateDirectionBody', 'Snake pX : ' + this.#_snakeNode.pX, 'pY : ' + this.#_snakeNode.pY + ' pDirection : ' + this.#_snakeNode.pDirection.direction)
+      this.#_consoleLog('#_updateDirectionBody', `Snake (${this.#_snakeNode.name}): [x:${this.#_snakeNode.x},y:${this.#_snakeNode.y}] - [pX:${this.#_snakeNode.pX},pY:${this.#_snakeNode.pY}] - [Direction:${this.#_snakeNode.direction.direction}] - [pDirection:${this.#_snakeNode.pDirection.direction}]`)
       this.#_snakeNode = this.#_snakeNode.priorNode
     }
   }
 
   #_processAll() {
     this.#_updateDirection(this.#_snakeHeadNode)
+    this.#_collisionFood()
   }
 
   #_render() {
-    this.#_contextCanvas.clearRect(0, 0, 800, 600)
-    this.#_drawSnake()
-    this.#_drawFoodNode()
+    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
     this.#_drawMatrix()
+    this.#_drawFoodNode()
+    this.#_drawSnake()
   }
 
   start() {  //start the game
     this.#_gameState = GameState.Playing
     this.#_gameLoop() //start the game loop
+    this.#_addFood()
     this.#_intervalProcess = 1000
     setInterval(this.#_processAll.bind(this), this.#_intervalProcess) //start the process loop
   }
@@ -347,7 +373,7 @@ class SnakeGame {
     document.addEventListener('keydown', this.#_processInput.bind(this))
     this.#_canvas = document.getElementById("canvas")
     this.#_contextCanvas = this.#_canvas.getContext("2d")
-    this.#_snakeHeadNode = new SnakeNode(5, 5, GameDirection.Right, this.#_snakeSize)
+    this.#_snakeHeadNode = new SnakeNode(5, 5, GameDirection.Right, this.#_snakeSize, 'head')
     this.gameDirection = GameDirection.Right
     this.gameState = GameState.Start
   }
