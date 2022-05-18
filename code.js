@@ -188,8 +188,6 @@ class SnakeGame {
     }
 
     this.#_consoleLog('#_processInput', `Input Key: ${e.key}`)
-    this.#_render()
-    this.#_processAll()
   }
 
   #_drawMatrix() {
@@ -265,7 +263,7 @@ class SnakeGame {
         localY = this.#_snakeNode.y
         break
     }
-    let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size, 'body_' + indexNode)
+    let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size, `body_${indexNode}`)
     newNode.nextNode = this.#_snakeNode
     this.#_snakeNode.priorNode = newNode
   }
@@ -345,6 +343,7 @@ class SnakeGame {
   #_processAll() {
     this.#_updateDirection(this.#_snakeHeadNode)
     this.#_collisionFood()
+    this.snakeDirection = this.#_snakeHeadNode.direction
   }
 
   #_render() {
