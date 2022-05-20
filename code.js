@@ -167,16 +167,24 @@ class SnakeGame {
 
   #_processInput(e) {
     if (e.key == 'ArrowRight') {
-      this.snakeDirection = GameDirection.Right
+      if (this.snakeDirection != GameDirection.Left) {
+        this.snakeDirection = GameDirection.Right
+      }
     }
     else if (e.key == 'ArrowLeft') {
-      this.snakeDirection = GameDirection.Left
+      if (this.snakeDirection != GameDirection.Right) {
+        this.snakeDirection = GameDirection.Left
+      }
     }
     else if (e.key == 'ArrowUp') {
-      this.snakeDirection = GameDirection.Up
+      if (this.snakeDirection != GameDirection.Down) {
+        this.snakeDirection = GameDirection.Up
+      }
     }
     else if (e.key == 'ArrowDown') {
-      this.snakeDirection = GameDirection.Down
+      if (this.snakeDirection != GameDirection.Up) {
+        this.snakeDirection = GameDirection.Down
+      }
     }
     else {
       if (e.key == 'Enter') {
