@@ -35,6 +35,7 @@ class SnakeNode {
   #_direction
   #_pDirection
   #_name
+  #_intervalProcess = 150
 
   constructor(x, y, direction, size, name) {
     this.#_x = x
@@ -123,10 +124,11 @@ class SnakeGame {
   #_snakeHeadNode
   #_snakeNode
   #_foodNode
-  #_intervalProcess
+  #_intervalProcess = 100
   #_canvas
   #_snakeSize = 5
   #_score = 0
+  #_idInterval
 
   constructor() {
     this.#_initialize()
@@ -280,9 +282,23 @@ class SnakeGame {
     if (this.#_snakeHeadNode.x == this.#_foodNode.x && this.#_snakeHeadNode.y == this.#_foodNode.y) {
       this.#_addSnakeNode()
       this.#_addFood()
-      this.#_score++
+      this.#_updateScore()
       this.#_consoleLog('#_collisionFood', `Score: ${this.#_score}`)
     }
+  }
+
+  #_collisionWall() {
+    if (this.#_snakeHeadNode.x < this.#_snakeSize || this.#_snakeHeadNode.x > (this.#_canvas.width - this.#_snakeSize) || this.#_snakeHeadNode.y < this.#_snakeSize || this.#_snakeHeadNode.y > (this.#_canvas.height - this.#_snakeSize)) {
+      this.#_consoleLog('#_collisionWall', `Game Over`)
+      this.#_gameOver()
+    }
+  }
+
+  #_updateScore() {
+    this.#_score++
+    this.#_stopIntervalProcess()
+    this.#_intervalProcess = this.#_intervalProcess - (this.#_intervalProcess * 0.1)
+    this.#_startIntervalProcess()
   }
 
   #_updateDirection(snake) {
@@ -343,6 +359,7 @@ class SnakeGame {
   #_processAll() {
     this.#_updateDirection(this.#_snakeHeadNode)
     this.#_collisionFood()
+    this.#_collisionWall()
     this.snakeDirection = this.#_snakeHeadNode.direction
   }
 
@@ -353,12 +370,31 @@ class SnakeGame {
     this.#_drawSnake()
   }
 
+  #_startIntervalProcess() {
+    this.#_idInterval = setInterval(this.#_processAll.bind(this), this.#_intervalProcess) //start the process loop
+  }
+
+  #_stopIntervalProcess() {
+    clearInterval(this.#_idInterval)
+  }
+
   start() {  //start the game
     this.#_gameState = GameState.Playing
     this.#_gameLoop() //start the game loop
     this.#_addFood()
-    this.#_intervalProcess = 1000
-    setInterval(this.#_processAll.bind(this), this.#_intervalProcess) //start the process loop
+    this.#_startIntervalProcess()
+  }
+
+  #_gameOver() {
+    this.#_gameState = GameState.GameOver
+    this.#_stopIntervalProcess()
+    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_drawMatrix()
+    this.#_drawFoodNode()
+    this.#_drawSnake()
+    this.#_contextCanvas.fillStyle = '#FF0000'
+    this.#_contextCanvas.font = 'bold 30px sans-serif'
+    this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - 50, this.#_canvas.height / 2)
   }
 
   #_gameLoop() {
