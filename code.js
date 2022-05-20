@@ -159,6 +159,10 @@ class SnakeGame {
     return true
   }
 
+  #_programmerMode() {
+    return true
+  }
+
   #_consoleLog(methName, message) {
     if (this.#_activeConsole()) {
       console.log(methName + ' ' + message)
@@ -191,8 +195,13 @@ class SnakeGame {
         this.#_canvas.requestFullscreen()
       }
       else if (e.key == ' ') {
-        //this.#_addFood()
-        this.#_addSnakeNode()
+        if (this.#_gameState == GameState.Pause) {
+          this.#_resumeGame()
+        }
+        else if (this.#_gameState == GameState.Playing) {
+          this.#_pauseGame()
+        }
+
         return
       }
     }
@@ -302,6 +311,17 @@ class SnakeGame {
     }
   }
 
+  #_collisionSnake() {
+    let snakeNode = this.#_snakeHeadNode.priorNode
+    while (snakeNode != null) {
+      if (this.#_snakeHeadNode.x == snakeNode.x && this.#_snakeHeadNode.y == snakeNode.y) {
+        this.#_consoleLog('#_collisionSnake', `Game Over`)
+        this.#_gameOver()
+      }
+      snakeNode = snakeNode.priorNode
+    }
+  }
+
   #_updateScore() {
     this.#_score++
     this.#_stopIntervalProcess()
@@ -364,10 +384,46 @@ class SnakeGame {
     }
   }
 
+  #_startGame() {
+    this.#_gameState = GameState.Start
+    this.#_consoleLog('#_startGame', `Start Game`)
+    this.#_addSnakeNode()
+    this.#_addFood()
+    this.#_startIntervalProcess()
+    this.#_gameState = GameState.Playing
+  }
+
+  #_pauseGame() {
+    this.#_gameState = GameState.Pause
+    this.#_consoleLog('#_pauseGame', `Pause`)
+    this.#_stopIntervalProcess()
+
+    this.#_contextCanvas.fillStyle = '#FF0000'
+    this.#_contextCanvas.font = 'bold 30px sans-serif'
+    this.#_contextCanvas.fillText('Pause Game', this.#_canvas.width / 2 - 50, this.#_canvas.height / 2)
+  }
+
+  #_stopGame() {
+    this.#_gameState = GameState.Stop
+    this.#_consoleLog('#_stopGame', `Stop`)
+    this.#_stopIntervalProcess()
+    this.#_snakeNode = null
+    this.#_foodNode = null
+    this.#_score = 0
+  }
+
+  #_resumeGame() {
+    this.#_gameState = GameState.Playing
+    this.#_consoleLog('#_resumeGame', `Resume`)
+    this.#_gameLoop()
+    this.#_startIntervalProcess()
+  }
+
   #_processAll() {
     this.#_updateDirection(this.#_snakeHeadNode)
     this.#_collisionFood()
     this.#_collisionWall()
+    this.#_collisionSnake()
     this.snakeDirection = this.#_snakeHeadNode.direction
   }
 
