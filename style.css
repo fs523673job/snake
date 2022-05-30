@@ -1,0 +1,30 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "Matrix";
+  src: 'http://fonts.cdnfonts.com/css/matrix';
+}
+
+html,
+body {
+  height: 100%;
+  font-family: "Matrix", sans-serif;
+  color: #6e7888;
+}
+
+body {
+  background-color: #222738;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #6e7888;
+}
+
+
+.canvas {
+  background-color: rgb(18, 18, 25);
+}

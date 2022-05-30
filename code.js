@@ -35,7 +35,7 @@ class SnakeNode {
   #_direction
   #_pDirection
   #_name
-  #_intervalProcess = 150
+  #_color
 
   constructor(x, y, direction, size, name) {
     this.#_x = x
@@ -90,6 +90,14 @@ class SnakeNode {
     return this.#_name
   }
 
+  get color() {
+    return this.#_color
+  }
+
+  set color(color) {
+    this.#_color = color
+  }
+
   set name(name) {
     this.#_name = name
   }
@@ -124,9 +132,9 @@ class SnakeGame {
   #_snakeHeadNode
   #_snakeNode
   #_foodNode
-  #_intervalProcess = 100
+  #_intervalProcess = 170
   #_canvas
-  #_snakeSize = 5
+  #_snakeSize = 10
   #_score = 0
   #_idInterval
 
@@ -210,7 +218,9 @@ class SnakeGame {
   }
 
   #_drawMatrix() {
-    this.#_contextCanvas.fillStyle = "black"
+    this.#_contextCanvas.lineWidth = 1.1
+    this.#_contextCanvas.strokeStyle = "#232332"
+    this.#_contextCanvas.shadowBlur = 0
     this.#_contextCanvas.beginPath()
 
     for (var i = 0; i < this.#_canvas.width; i += (this.#_snakeSize * 2)) {
@@ -223,22 +233,39 @@ class SnakeGame {
       this.#_contextCanvas.lineTo(this.#_canvas.width, i + (this.#_snakeSize * 2))
     }
 
-    this.#_contextCanvas.strokeStyle = '#ffffff'
     this.#_contextCanvas.stroke()
+    this.#_contextCanvas.closePath()
   }
 
   #_drawSnake() {
     let nodesDraw = 1
-    this.#_contextCanvas.fillStyle = "red"
+
+    // draw snake head
+    this.#_contextCanvas.fillStyle = this.#_snakeHeadNode.color
+    this.#_contextCanvas.globalCompositeOperation = 'lighter'
+    this.#_contextCanvas.shadowBlur = 20
+    this.#_contextCanvas.shadowColor = this.#_snakeHeadNode.color
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.arc(this.#_snakeHeadNode.x, this.#_snakeHeadNode.y, this.#_snakeHeadNode.size, 0, 2 * Math.PI)
     this.#_contextCanvas.fill()
+    this.#_contextCanvas.globalCompositeOperation = 'source-over'
+    this.#_contextCanvas.shadowBlur = 0
+
     this.#_snakeNode = this.#_snakeHeadNode.priorNode
+
     while (this.#_snakeNode != null) {
+      this.#_contextCanvas.fillStyle = this.#_snakeNode.color
+      this.#_contextCanvas.globalCompositeOperation = 'lighter'
+      this.#_contextCanvas.shadowBlur = 20
+      this.#_contextCanvas.shadowColor = this.#_snakeNode.color
       this.#_contextCanvas.beginPath()
       this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
       this.#_contextCanvas.fill()
+      this.#_contextCanvas.globalCompositeOperation = 'source-over'
+      this.#_contextCanvas.shadowBlur = 0
+
       this.#_snakeNode = this.#_snakeNode.priorNode
+
       nodesDraw++
     }
     this.#_contextCanvas.fill()
@@ -247,10 +274,15 @@ class SnakeGame {
 
   #_drawFoodNode() {
     if (this.#_foodNode) {
-      this.#_contextCanvas.fillStyle = "green"
+      this.#_contextCanvas.fillStyle = this.#_foodNode.color
+      this.#_contextCanvas.globalCompositeOperation = 'lighter'
+      this.#_contextCanvas.shadowBlur = 20
+      this.#_contextCanvas.shadowColor = this.#_foodNode.color
       this.#_contextCanvas.beginPath()
       this.#_contextCanvas.arc(this.#_foodNode.x, this.#_foodNode.y, this.#_foodNode.size, 0, 2 * Math.PI)
       this.#_contextCanvas.fill()
+      this.#_contextCanvas.globalCompositeOperation = 'source-over'
+      this.#_contextCanvas.shadowBlur = 0
     }
   }
 
@@ -283,6 +315,7 @@ class SnakeGame {
         break
     }
     let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size, `body_${indexNode}`)
+    newNode.color = this.#_foodNode.color
     newNode.nextNode = this.#_snakeNode
     this.#_snakeNode.priorNode = newNode
   }
@@ -290,7 +323,10 @@ class SnakeGame {
   #_addFood() {
     let x = (Math.floor(Math.random() * (this.#_canvas.width / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
     let y = (Math.floor(Math.random() * (this.#_canvas.height / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
+    let colorRandom = `hsl(${~~(Math.random() * 360)},100%,50%)`
+
     this.#_foodNode = new SnakeNode(x, y, GameDirection.None, this.#_snakeSize)
+    this.#_foodNode.color = colorRandom
 
     this.#_consoleLog('#_addFood', `Food [x:${x},y:${y}]`)
   }
@@ -325,7 +361,7 @@ class SnakeGame {
   #_updateScore() {
     this.#_score++
     this.#_stopIntervalProcess()
-    this.#_intervalProcess = this.#_intervalProcess - (this.#_intervalProcess * 0.1)
+    this.#_intervalProcess = this.#_intervalProcess - (this.#_intervalProcess * 0.01)
     this.#_startIntervalProcess()
   }
 
@@ -472,7 +508,12 @@ class SnakeGame {
     document.addEventListener('keydown', this.#_processInput.bind(this))
     this.#_canvas = document.getElementById("canvas")
     this.#_contextCanvas = this.#_canvas.getContext("2d")
-    this.#_snakeHeadNode = new SnakeNode(5, 5, GameDirection.Right, this.#_snakeSize, 'head')
+
+    let x = (Math.floor(Math.random() * (this.#_canvas.width / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
+    let y = (Math.floor(Math.random() * (this.#_canvas.height / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
+
+    this.#_snakeHeadNode = new SnakeNode(x, y, GameDirection.Right, this.#_snakeSize, 'head')
+    this.#_snakeHeadNode.color = 'white'
     this.gameDirection = GameDirection.Right
     this.gameState = GameState.Start
   }
