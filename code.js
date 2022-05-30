@@ -137,6 +137,7 @@ class SnakeGame {
   #_snakeSize = 10
   #_score = 0
   #_idInterval
+  #_domScore
 
   constructor() {
     this.#_initialize()
@@ -363,6 +364,7 @@ class SnakeGame {
     this.#_stopIntervalProcess()
     this.#_intervalProcess = this.#_intervalProcess - (this.#_intervalProcess * 0.01)
     this.#_startIntervalProcess()
+    this.#_domScore.innerText = `Score: ${String(this.#_score).padStart(2, '0')} - Speed: ${this.#_intervalProcess.toFixed(2)}`
   }
 
   #_updateDirection(snake) {
@@ -506,6 +508,7 @@ class SnakeGame {
 
   #_initialize() {
     document.addEventListener('keydown', this.#_processInput.bind(this))
+    this.#_domScore = document.getElementById('score')
     this.#_canvas = document.getElementById("canvas")
     this.#_contextCanvas = this.#_canvas.getContext("2d")
 
