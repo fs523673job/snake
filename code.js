@@ -238,7 +238,7 @@ class SnakeGame {
     this.#_contextCanvas.closePath()
   }
 
-  #_drawSnake() {
+  #_drawSnake(timeStamp) {
     let nodesDraw = 1
     
 
@@ -262,8 +262,20 @@ class SnakeGame {
       this.#_contextCanvas.shadowBlur = 20
       this.#_contextCanvas.shadowColor = this.#_snakeNode.color
       this.#_contextCanvas.beginPath()
-      this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
-      this.#_contextCanvas.fill()
+      if(this.#_snakeNode.priorNode == undefined){
+        this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size/2, 0, 2 * Math.PI)
+        this.#_contextCanvas.fill()
+        this.#_contextCanvas.beginPath()
+        this.#_contextCanvas.strokeStyle = this.#_snakeNode.nextNode.color
+        this.#_contextCanvas.lineWidth = 5
+        this.#_contextCanvas.moveTo(this.#_snakeNode.x, this.#_snakeNode.y)
+        this.#_contextCanvas.lineTo(this.#_snakeNode.nextNode.x, this.#_snakeNode.nextNode.y)
+        this.#_contextCanvas.stroke()
+      }
+      else{
+        this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
+        this.#_contextCanvas.fill()
+      }
       this.#_contextCanvas.globalCompositeOperation = 'source-over'
       this.#_contextCanvas.shadowBlur = 0
 
@@ -271,8 +283,13 @@ class SnakeGame {
       if (fSaturation && fSaturation.length > 0) {
         let nColor = Number.parseInt(fSaturation[0].replace(/\D/g, ''))
         if (nColor < 100){
-          nColor += 1
-          this.#_snakeNode.color = this.#_snakeNode.color.replace(fSaturation[0], nColor+'%)')
+          if(timeStamp){
+            if (this.#_snakeNode.incColor!== false && !this.#_snakeNode.timeStamp || timeStamp - this.#_snakeNode.timeStamp > 100){
+              nColor += 1
+              this.#_snakeNode.timeStamp = timeStamp
+            }
+            this.#_snakeNode.color = this.#_snakeNode.color.replace(fSaturation[0], nColor+'%)')
+          }
         }
       }
 
@@ -478,17 +495,18 @@ class SnakeGame {
     this.snakeDirection = this.#_snakeHeadNode.direction
   }
 
-  #_render() {
+  #_render(timeStamp) {
     //this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
     this.#_contextCanvas.fillStyle = 'rgb(18, 18, 25)'
     this.#_contextCanvas.fillRect(0, 0, this.#_canvas.width, this.#_canvas.height)
     this.#_contextCanvas.beginPath()
+    this.#_contextCanvas.lineWidth = 1.1
     this.#_contextCanvas.strokeStyle = 'white'
     this.#_contextCanvas.rect(0, 0, this.#_canvas.width, this.#_canvas.height)
     this.#_contextCanvas.stroke()
     this.#_drawMatrix()
     this.#_drawFoodNode()
-    this.#_drawSnake()
+    this.#_drawSnake(timeStamp)
   }
 
   #_startIntervalProcess() {
@@ -519,9 +537,9 @@ class SnakeGame {
     this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - (textWidth/2), this.#_canvas.height / 2)
   }
 
-  #_gameLoop() {
+  #_gameLoop(timeStamp) {
     if (this.#_gameState == GameState.Playing) {
-      this.#_render() //render the game
+      this.#_render(timeStamp) //render the game
       requestAnimationFrame(this.#_gameLoop.bind(this)) //call the game loop
     }
   }
@@ -532,7 +550,7 @@ class SnakeGame {
     this.#_canvas = document.getElementById("canvas")
     this.#_contextCanvas = this.#_canvas.getContext("2d")
 
-    let x = (Math.floor(Math.random() * (this.#_canvas.width / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
+    let x = this.#_snakeSize
     let y = (Math.floor(Math.random() * (this.#_canvas.height / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
 
     this.#_snakeHeadNode = new SnakeNode(x, y, GameDirection.Right, this.#_snakeSize, 'head')
