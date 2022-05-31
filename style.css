@@ -25,5 +25,12 @@ body {
 }
 
 .canvas {
-  background-color: rgb(18, 18, 25);
+  background-color: rgb(0, 0, 0);
+}
+
+.meio{
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%)
 }

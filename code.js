@@ -240,6 +240,7 @@ class SnakeGame {
 
   #_drawSnake() {
     let nodesDraw = 1
+    
 
     // draw snake head
     this.#_contextCanvas.fillStyle = this.#_snakeHeadNode.color
@@ -255,6 +256,7 @@ class SnakeGame {
     this.#_snakeNode = this.#_snakeHeadNode.priorNode
 
     while (this.#_snakeNode != null) {
+      let hslSaturationFinder = /\d{1,}%\)/gm //Find hsl pattern
       this.#_contextCanvas.fillStyle = this.#_snakeNode.color
       this.#_contextCanvas.globalCompositeOperation = 'lighter'
       this.#_contextCanvas.shadowBlur = 20
@@ -264,6 +266,15 @@ class SnakeGame {
       this.#_contextCanvas.fill()
       this.#_contextCanvas.globalCompositeOperation = 'source-over'
       this.#_contextCanvas.shadowBlur = 0
+
+      let fSaturation = hslSaturationFinder.exec(this.#_snakeNode.color)
+      if (fSaturation && fSaturation.length > 0) {
+        let nColor = Number.parseInt(fSaturation[0].replace(/\D/g, ''))
+        if (nColor < 100){
+          nColor += 1
+          this.#_snakeNode.color = this.#_snakeNode.color.replace(fSaturation[0], nColor+'%)')
+        }
+      }
 
       this.#_snakeNode = this.#_snakeNode.priorNode
 
@@ -316,9 +327,11 @@ class SnakeGame {
         break
     }
     let newNode = new SnakeNode(localX, localY, this.#_snakeNode.direction, this.#_snakeNode.size, `body_${indexNode}`)
-    newNode.color = this.#_foodNode.color
+    newNode.color = 'hsl(0, 100%, 100%)'
     newNode.nextNode = this.#_snakeNode
     this.#_snakeNode.priorNode = newNode
+    this.#_snakeHeadNode.priorNode.color = this.#_snakeHeadNode.color
+    this.#_snakeHeadNode.color = this.#_foodNode.color
   }
 
   #_addFood() {
@@ -466,7 +479,13 @@ class SnakeGame {
   }
 
   #_render() {
-    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    //this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_contextCanvas.fillStyle = 'rgb(18, 18, 25)'
+    this.#_contextCanvas.fillRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_contextCanvas.beginPath()
+    this.#_contextCanvas.strokeStyle = 'white'
+    this.#_contextCanvas.rect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_contextCanvas.stroke()
     this.#_drawMatrix()
     this.#_drawFoodNode()
     this.#_drawSnake()
@@ -496,7 +515,8 @@ class SnakeGame {
     this.#_drawSnake()
     this.#_contextCanvas.fillStyle = '#FF0000'
     this.#_contextCanvas.font = 'bold 30px sans-serif'
-    this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - 50, this.#_canvas.height / 2)
+    let textWidth = this.#_contextCanvas.measureText('Game Over').width
+    this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - (textWidth/2), this.#_canvas.height / 2)
   }
 
   #_gameLoop() {
