@@ -240,8 +240,6 @@ class SnakeGame {
 
   #_drawSnake(timeStamp) {
     let nodesDraw = 1
-    
-
     // draw snake head
     this.#_contextCanvas.fillStyle = this.#_snakeHeadNode.color
     this.#_contextCanvas.globalCompositeOperation = 'lighter'
@@ -262,8 +260,8 @@ class SnakeGame {
       this.#_contextCanvas.shadowBlur = 20
       this.#_contextCanvas.shadowColor = this.#_snakeNode.color
       this.#_contextCanvas.beginPath()
-      if(this.#_snakeNode.priorNode == undefined){
-        this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size/2, 0, 2 * Math.PI)
+      if (this.#_snakeNode.priorNode == undefined) {
+        this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size / 2, 0, 2 * Math.PI)
         this.#_contextCanvas.fill()
         this.#_contextCanvas.beginPath()
         this.#_contextCanvas.strokeStyle = this.#_snakeNode.nextNode.color
@@ -272,7 +270,7 @@ class SnakeGame {
         this.#_contextCanvas.lineTo(this.#_snakeNode.nextNode.x, this.#_snakeNode.nextNode.y)
         this.#_contextCanvas.stroke()
       }
-      else{
+      else {
         this.#_contextCanvas.arc(this.#_snakeNode.x, this.#_snakeNode.y, this.#_snakeNode.size, 0, 2 * Math.PI)
         this.#_contextCanvas.fill()
       }
@@ -282,13 +280,13 @@ class SnakeGame {
       let fSaturation = hslSaturationFinder.exec(this.#_snakeNode.color)
       if (fSaturation && fSaturation.length > 0) {
         let nColor = Number.parseInt(fSaturation[0].replace(/\D/g, ''))
-        if (nColor < 100){
-          if(timeStamp){
-            if (this.#_snakeNode.incColor!== false && !this.#_snakeNode.timeStamp || timeStamp - this.#_snakeNode.timeStamp > 100){
+        if (nColor < 100) {
+          if (timeStamp) {
+            if (this.#_snakeNode.incColor !== false && !this.#_snakeNode.timeStamp || timeStamp - this.#_snakeNode.timeStamp > 100) {
               nColor += 1
               this.#_snakeNode.timeStamp = timeStamp
             }
-            this.#_snakeNode.color = this.#_snakeNode.color.replace(fSaturation[0], nColor+'%)')
+            this.#_snakeNode.color = this.#_snakeNode.color.replace(fSaturation[0], nColor + '%)')
           }
         }
       }
@@ -453,12 +451,11 @@ class SnakeGame {
   }
 
   #_startGame() {
-    this.#_gameState = GameState.Start
-    this.#_consoleLog('#_startGame', `Start Game`)
-    this.#_addSnakeNode()
+    this.#_gameState = GameState.Playing
+    this.#_gameLoop() //start the game loop
     this.#_addFood()
     this.#_startIntervalProcess()
-    this.#_gameState = GameState.Playing
+    this.#_consoleLog('#_startGame', `Start Game`)
   }
 
   #_pauseGame() {
@@ -468,7 +465,8 @@ class SnakeGame {
 
     this.#_contextCanvas.fillStyle = '#FF0000'
     this.#_contextCanvas.font = 'bold 30px sans-serif'
-    this.#_contextCanvas.fillText('Pause Game', this.#_canvas.width / 2 - 50, this.#_canvas.height / 2)
+    let textWidth = this.#_contextCanvas.measureText('Pause Game').width
+    this.#_contextCanvas.fillText('Pause Game', this.#_canvas.width / 2 - (textWidth / 2), this.#_canvas.height / 2)
   }
 
   #_stopGame() {
@@ -485,6 +483,28 @@ class SnakeGame {
     this.#_consoleLog('#_resumeGame', `Resume`)
     this.#_gameLoop()
     this.#_startIntervalProcess()
+  }
+
+  #_restartGame(e) {
+    if (this.#_gameState == GameState.GameOver) {
+      this.#_consoleLog('#_restartGame', `Restart`)
+      this.#_stopGame()
+      this.#_initializeSnake()
+      this.#_startGame()
+    }
+  }
+
+  #_gameOver() {
+    this.#_gameState = GameState.GameOver
+    this.#_stopIntervalProcess()
+    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_drawMatrix()
+    this.#_drawFoodNode()
+    this.#_drawSnake()
+    this.#_contextCanvas.fillStyle = '#FF0000'
+    this.#_contextCanvas.font = 'bold 30px sans-serif'
+    let textWidth = this.#_contextCanvas.measureText('Game Over').width
+    this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - (textWidth / 2), this.#_canvas.height / 2)
   }
 
   #_processAll() {
@@ -518,23 +538,7 @@ class SnakeGame {
   }
 
   start() {  //start the game
-    this.#_gameState = GameState.Playing
-    this.#_gameLoop() //start the game loop
-    this.#_addFood()
-    this.#_startIntervalProcess()
-  }
-
-  #_gameOver() {
-    this.#_gameState = GameState.GameOver
-    this.#_stopIntervalProcess()
-    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
-    this.#_drawMatrix()
-    this.#_drawFoodNode()
-    this.#_drawSnake()
-    this.#_contextCanvas.fillStyle = '#FF0000'
-    this.#_contextCanvas.font = 'bold 30px sans-serif'
-    let textWidth = this.#_contextCanvas.measureText('Game Over').width
-    this.#_contextCanvas.fillText('Game Over', this.#_canvas.width / 2 - (textWidth/2), this.#_canvas.height / 2)
+    this.#_startGame()
   }
 
   #_gameLoop(timeStamp) {
@@ -544,17 +548,21 @@ class SnakeGame {
     }
   }
 
-  #_initialize() {
-    document.addEventListener('keydown', this.#_processInput.bind(this))
-    this.#_domScore = document.getElementById('score')
-    this.#_canvas = document.getElementById("canvas")
-    this.#_contextCanvas = this.#_canvas.getContext("2d")
-
+  #_initializeSnake() {
     let x = this.#_snakeSize
     let y = (Math.floor(Math.random() * (this.#_canvas.height / (this.#_snakeSize * 2))) * (this.#_snakeSize * 2)) + this.#_snakeSize
 
     this.#_snakeHeadNode = new SnakeNode(x, y, GameDirection.Right, this.#_snakeSize, 'head')
     this.#_snakeHeadNode.color = 'white'
+  }
+
+  #_initialize() {
+    document.addEventListener('keydown', this.#_processInput.bind(this))
+    document.addEventListener('click', this.#_restartGame.bind(this))
+    this.#_domScore = document.getElementById('score')
+    this.#_canvas = document.getElementById("canvas")
+    this.#_contextCanvas = this.#_canvas.getContext("2d")
+    this.#_initializeSnake()
     this.gameDirection = GameDirection.Right
     this.gameState = GameState.Start
   }
