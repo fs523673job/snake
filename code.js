@@ -516,8 +516,8 @@ class SnakeGame {
   }
 
   #_render(timeStamp) {
-    //this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
-    this.#_contextCanvas.fillStyle = 'rgb(18, 18, 25)'
+    this.#_contextCanvas.clearRect(0, 0, this.#_canvas.width, this.#_canvas.height)
+    this.#_contextCanvas.fillStyle = 'rgba(18, 18, 25, 0.5)'
     this.#_contextCanvas.fillRect(0, 0, this.#_canvas.width, this.#_canvas.height)
     this.#_contextCanvas.beginPath()
     this.#_contextCanvas.lineWidth = 1.1

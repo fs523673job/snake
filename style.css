@@ -14,18 +14,21 @@ body {
   height: 100%;
   font-family: "Matrix", sans-serif;
   color: #6e7888;
+  
 }
 
 body {
-  background-color: #222738;
+  background-image: url("bg.webp");
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #6e7888;
 }
 
-.canvas {
-  background-color: rgb(0, 0, 0);
+#score{
+  background-color: rgba(14, 1, 1, 0.5);
+  color: rgb(185, 200, 216);
 }
 
 .meio{
